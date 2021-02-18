@@ -5,8 +5,3 @@ available commands :
     commit 
     history [number to show]
     revert <commit id>
-
-
-todo : 
-    untrack some file
-    message of commit
