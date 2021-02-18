@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { readfullpath, hashAndCopy } = require('../myFunctions');
+const { readfullpath, hashAndCopy, read, readTree } = require('../myFunctions');
 
 
 
@@ -38,6 +38,9 @@ function addSomething(project){
     }
     else{
         stage = staging(project, 'notexist', files);
+    }
+    if (stage.every(f => f.length === 0)){
+        return console.log('nothing change');
     }
     manageAddedBis(stage, project);
 }
@@ -128,15 +131,18 @@ function staging(project, test, files){
     let remove = [];
     let modified = [];
     if(test === 'all'){      // add .
-        add = project.filter(f => !oldName.includes(f));
+        add = project.filter(f => !oldName.includes(f) && !fs.lstatSync(f).isDirectory());
         remove = oldName.filter(f => !project.includes(f));
         modified = old.filter(
-            f => project.includes(f[1]) && !Buffer.from(read(f[1])).equals(Buffer.from(read('./.tig/data/'+f[0])))
+            f => {
+                if(project.includes(f[1]) && !fs.lstatSync(f[1]).isDirectory()){
+                    !Buffer.from(read(f[1])).equals(Buffer.from(read('./.tig/data/'+f[0])))
+                }
+            }
         );
     }   
     else if(test === 'exist'){      // add "existing file or dir"
-        add = project.filter(f => !oldName.includes(f));
-        
+        add = project.filter(f => !oldName.includes(f) && !fs.lstatSync(f).isDirectory());
         project.lenght === 1 && (remove = oldName.filter(f => project.includes(f)) && !files.includes(f));
         project.lenght > 1 && (remove = oldName.filter(f => !project.includes(f)) && !files.includes(f));
         modified = old.filter(

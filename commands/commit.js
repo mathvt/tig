@@ -15,9 +15,10 @@ const { readfullpath, askMsg, read } = require('../myFunctions');
                 let stage = JSON.parse(read('./.tig/stage.json'));
                 let key = stage[0];
                 let remove = stage[1];
-                console.log('files added of modified :')
+                key.length !== 0 && console.log('files added of modified :')
                 key.forEach(e => console.log('   '+e[1]))
-                remove.length !== 0 && console.log('remove :  '+ remove)
+                remove.length !== 0 && console.log('removed :')
+                remove.forEach(e => console.log('   '+e))
                 files = readfullpath('./.tig/data/')
 
                 key.forEach((f) => {
@@ -28,6 +29,7 @@ const { readfullpath, askMsg, read } = require('../myFunctions');
                 let nextPath = 0;
                 let tree = {};
                 let path = null;
+                let branch = read('./.tig/branch.txt')
                 if(fs.existsSync('./.tig/header.txt')){
                     path = read('./.tig/header.txt');
                     nextPath = parseInt(path, 16) + 1;
@@ -37,7 +39,8 @@ const { readfullpath, askMsg, read } = require('../myFunctions');
                     'keys' : key,
                     'ignoreFile' : remove,
                     'next' : path,
-                    'comment' : message
+                    'comment' : message,
+                    'branch' : branch
                 };
                 tree = JSON.stringify(tree);
                 fs.writeFileSync('./.tig/tree.json', tree, err => console.error(err));

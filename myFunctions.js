@@ -60,18 +60,18 @@ function askMsg (mess){
 }
 
 
-function hashAndCopy(addFiles, path, already){
+function hashAndCopy(addFiles, path, alreadyStaged){
     return new Promise (function(key){
         let keys = [];
         if(addFiles.length === 0){
             return key(keys)
         }
-        let test = already || [];
+        let test = alreadyStaged || [];
         addFiles.forEach(function(f) {
             sha1(f)
             .then(h => {
                 if (!test.includes(h)){
-                    copy(f, path + h, (err) => {err && console.error(err); err && console.log(f)});
+                    copy(f, path + h, (err) => err && console.error(err));
                     test.push(h); 
                 }
                 keys.push([h,f]);

@@ -11,7 +11,8 @@ function history(num){
         hist.unshift(tree[key])
     }
     for (data of hist){
-        console.log(data.no + '   ' + data.comment);
+        let info = data.no + '   ' + data.branch + '   ' + data.comment
+        console.log((path == data.no) ? '*'+info : ''+info);
         i--;
         if (i <= 0){return}
     }

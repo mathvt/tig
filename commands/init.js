@@ -8,6 +8,7 @@ function init(){
             fs.mkdirSync('./.tig');
             fs.mkdirSync('./.tig/stage');
             fs.mkdirSync('./.tig/data');
+            fs.writeFileSync('./.tig/branch.txt', 'main', err => console.error(err));
     }
 }
 

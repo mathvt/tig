@@ -6,30 +6,68 @@ const { read, askMsg, readfullpath, readTree } = require('../myFunctions')
 
 // revert but not commit
 function revert(num){
-    let testNum = parseInt(num , 10)
-    let path = read('./.tig/header.txt');
-    let testPath = parseInt(path , 10)
-    if ( isNaN(testNum) || testNum > testPath || testNum < 0){  // Test if the revert is valid
-        return console.log('Wrong commit id to revert')
+    let tree = JSON.parse(read('./.tig/tree.json'));
+    if(testIfValid(num, tree) === 0){
+        return console.log('invalid id')
     }
+
+
     askMsg('you will lose all change that have not been commited. Continue ? y/n')
     .then(function(msg){
         let re = /^(y|Y)/i
-        if(re.test(msg)){
-            let tree = JSON.parse(read('./.tig/tree.json'));
-            let revertKeys = readTree(tree[num], tree); // hash and files name of the commit id
-            files = readfullpath('.');
-            let dir = []
-            files.forEach(f => !fs.lstatSync(f).isDirectory() ? fs.rmSync(f) : dir.push(f));//    TODO replace 
-            dir.forEach(f => fs.rmdirSync(f))                                               //  just what's needed
-            revertKeys.forEach(f => copy('./.tig/data/'+f[0], f[1]))// copy files of the commit id
-            console.log('Revert done. Stage and commit to save change.')    
+        if(!re.test(msg)){
+            return console.log('Aborted')
         }
-        else{
-            console.log('Aborted')
-        }
+        
+        let revertKeys = readTree(tree[num], tree); // hash and files name of the commit id
+        let newFilesList = revertKeys.map(e => e[1]);
+        files = readfullpath('.');
+        files = removeFileAndDir(files, newFilesList);  // rm files and dir that does not match
+        revertKeys.forEach(f => {     //compare files and remove those that have been modified
+            if(files.includes(f[1])){
+                if(!Buffer.from(read(f[1])).equals(Buffer.from(read('./.tig/data/'+f[0])))){
+                    fs.rmSync(f[1])
+                }
+            }
+        })
+        files = readfullpath('.');
+        revertKeys.forEach(f => {       //copy files (replace those previously deleted if needed)
+            if(!files.includes(f[1])){
+                copy('./.tig/data/'+f[0], f[1])
+            }
+        })
+        console.log('Done')
     })
     .catch((err) => err && console.error(err))
 }
 
 module.exports = {revert}
+
+
+
+
+function removeFileAndDir(files, newFilesList){
+    let i = 0;
+    files.forEach(f => {
+        if(!newFilesList.includes(f)){
+            i++
+            fs.lstatSync(f).isDirectory() ? fs.rmdirSync(f) : fs.rmSync(f);
+        }
+    })
+    if(i > 0){
+        files = readfullpath('.')
+        removeFileAndDir(files, newFilesList)
+    }
+    return files;
+}
+
+
+
+function testIfValid(num, tree){
+    for (let key in tree){
+        if (key === num){
+            return 1
+        }
+    }
+    return 0
+}
