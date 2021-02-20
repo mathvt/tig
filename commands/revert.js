@@ -6,37 +6,36 @@ const { read, askMsg, readfullpath, readTree } = require('../myFunctions')
 
 // revert but not commit
 function revert(num){
-    let tree = JSON.parse(read('./.tig/tree.json'));
-    if(testIfValid(num, tree) === 0){
-        return console.log('invalid id')
-    }
-
-
-    askMsg('you will lose all change that have not been commited. Continue ? y/n')
-    .then(function(msg){
-        let re = /^(y|Y)/i
-        if(!re.test(msg)){
-            return console.log('Aborted')
+    return new Promise(function(res){
+        let tree = JSON.parse(read('./.tig/tree.json'));
+        if(testIfValid(num, tree) === 0){
+            return console.log('invalid id')
         }
-        
-        let revertKeys = readTree(tree[num], tree); // hash and files name of the commit id
-        let newFilesList = revertKeys.map(e => e[1]);
-        files = readfullpath('.');
-        files = removeFileAndDir(files, newFilesList);  // rm files and dir that does not match
-        revertKeys.forEach(f => {     //compare files and remove those that have been modified
-            if(files.includes(f[1])){
-                if(!Buffer.from(read(f[1])).equals(Buffer.from(read('./.tig/data/'+f[0])))){
+        askMsg('you will lose all change that have not been commited. Continue ? y/n')
+        .then(function(msg){
+            let re = /^(y|Y)/i
+            if(!re.test(msg)){
+                console.log('Aborded')
+                return res('Aborted')
+            }
+            let revertKeys = readTree(tree[num], tree);     // hash and files name of the commit id
+            let newFilesList = revertKeys.map(e => e[1]);
+            files = readfullpath('.');
+            files = removeFileAndDir(files, newFilesList);  // rm files and dir that does not match
+            revertKeys.forEach(f => {                       //compare files and remove those that have been modified
+                if(files.includes(f[1]) && !Buffer.from(read(f[1])).equals(Buffer.from(read('./.tig/data/'+f[0])))){
                     fs.rmSync(f[1])
                 }
-            }
+            })
+            files = readfullpath('.');
+            revertKeys.forEach(f => {       //copy files (replace those previously deleted if needed)
+                if(!files.includes(f[1])){
+                    copy('./.tig/data/'+f[0], f[1])
+                }
+            })
+            console.log('Done')
+            return res('Done')    
         })
-        files = readfullpath('.');
-        revertKeys.forEach(f => {       //copy files (replace those previously deleted if needed)
-            if(!files.includes(f[1])){
-                copy('./.tig/data/'+f[0], f[1])
-            }
-        })
-        console.log('Done')
     })
     .catch((err) => err && console.error(err))
 }

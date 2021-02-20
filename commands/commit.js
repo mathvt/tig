@@ -7,7 +7,7 @@ const { readfullpath, askMsg, read } = require('../myFunctions');
             return console.log('project not initialized');
         }
         if(!fs.existsSync('./.tig/stage.json')){
-            return console.log('project not initialized');
+            return console.log('nothing to commit');
         }
         (async function(){
             try{
@@ -30,10 +30,15 @@ const { readfullpath, askMsg, read } = require('../myFunctions');
                 let tree = {};
                 let path = null;
                 let branch = read('./.tig/branch.txt')
-                if(fs.existsSync('./.tig/header.txt')){
-                    path = read('./.tig/header.txt');
-                    nextPath = parseInt(path, 16) + 1;
+                if(fs.existsSync('./.tig/tree.json')){
                     tree = JSON.parse(read('./.tig/tree.json'));
+                    path = 0;
+                    for (let leaf in tree){
+                        if (parseInt(leaf,16) > path){
+                            path = parseInt(leaf,16)
+                        }
+                    }
+                    nextPath = parseInt(path, 16) + 1;
                 }
                 tree[nextPath] = {
                     'keys' : key,

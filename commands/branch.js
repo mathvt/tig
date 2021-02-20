@@ -31,6 +31,9 @@ function changeBranch(name){
     if(!branchList.includes(name)){
         return console.log('This branch does not exist')
     }
+    if(fs.existsSync('./.tig/stage.json')){
+        return console.log('Please commit or unstage before switching branch');
+    }
     let tree = JSON.parse(read('./.tig/tree.json'));
     let branchCommit = []
     for (let key in tree){
@@ -39,9 +42,13 @@ function changeBranch(name){
         }
     }
     let head = branchCommit[0];
-    revert(head);
-    fs.writeFileSync('./.tig/branch.txt', name, err => console.error(err));
-    fs.writeFileSync('./.tig/header.txt', head, err => console.error(err));
+    revert(head)
+    .then((res) => {
+        if(res === 'Done'){
+            fs.writeFileSync('./.tig/branch.txt', name, err => console.error(err));
+            fs.writeFileSync('./.tig/header.txt', head, err => console.error(err));               
+        }
+    })
 }
 
 
