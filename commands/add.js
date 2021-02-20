@@ -45,7 +45,7 @@ function addSomething(project){
     manageAddedBis(stage, project);
 }
 
-module.exports = {addDot, addSomething}
+
 
 
 
@@ -82,7 +82,7 @@ function manageAddedBis(stage, project){
 
         stage[2].forEach(f => !oldStage[1].includes(f) && oldStage[1].push(f))
         oldStage[1] = oldStage[1].filter(f => !project.includes(f))
-        stage = [key, oldStage[1]];
+        stage = [key, oldStage[1], stage[0], stage[1]];
         stage = JSON.stringify(stage);
         fs.writeFileSync('./.tig/stage.json', stage, err => console.error(err));     
     })
@@ -123,7 +123,8 @@ function staging(project, test, files){
     if(fs.existsSync('./.tig/header.txt')){
         let tree = JSON.parse(read('./.tig/tree.json'));
         let path = read('./.tig/header.txt');
-        old = readTree(tree[path], tree); //...[hash, filesname]      
+        old = readTree(tree[path], tree); //...[hash, filesname]
+        old = old.map(f => ['./.tig/data/'+f[0],f[1]])
     }
     let result;
     if(test === 'all'){      // add .
@@ -135,8 +136,6 @@ function staging(project, test, files){
     else if(test === 'notexist'){      // add "deleted file or dir"
         result = compareMissingFiles(project, old)
     }
-
-    result[0] = result[0].map(e => e[1]);
     return result;
 }
 
@@ -148,9 +147,11 @@ function compareAllFiles(project, old){
     let remove = oldName.filter(f => !project.includes(f));
     let modified = old.filter(f =>
         project.includes(f[1]) && !fs.lstatSync(f[1]).isDirectory() &&
-        !Buffer.from(read(f[1])).equals(Buffer.from(read('./.tig/data/'+f[0])))
+        !Buffer.from(read(f[1])).equals(Buffer.from(read(f[0])))
     );
-        return [modified, add, remove]
+    modified = modified.map(e => e[1])
+    
+    return [modified, add, remove]
 }
 
 
@@ -161,8 +162,9 @@ function compareSomeFiles(project, old, files){
     project.lenght === 1 && (remove = oldName.filter(f => project.includes(f)) && !files.includes(f));
     project.lenght > 1 && (remove = oldName.filter(f => !project.includes(f)) && !files.includes(f));
     let modified = old.filter(
-        f => project.includes(f[1]) && !Buffer.from(read(f[1])).equals(Buffer.from(read('./.tig/data/'+f[0])))
+        f => project.includes(f[1]) && !Buffer.from(read(f[1])).equals(Buffer.from(read(f[0])))
     );
+    modified.map(e => e[1])
     return [modified, add, remove]
 }
 
@@ -175,3 +177,5 @@ function compareMissingFiles(project, old){
 
     return [[], [], remove]
 }
+
+module.exports = {addDot, addSomething, compareAllFiles}

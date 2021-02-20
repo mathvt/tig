@@ -22,6 +22,7 @@ const argv = yargs
         }
     })
     .command('branch', 'list existing branch')
+    .command('status', 'status')
 
     .command('$0', 'the default command', () => {}, (argv) => {
         console.log('wrong command')
@@ -38,6 +39,7 @@ const { commit } = require('./commands/commit')
 const { history } = require('./commands/history')
 const { revert } = require('./commands/revert')
 const { branch, createNewBranch, changeBranch } = require('./commands/branch')
+const { status } = require('./commands/status')
 
 
 if (argv._.includes('init')){         
@@ -79,5 +81,10 @@ else if (argv._.includes('switch') && argv.newBranch){
 
 if (argv._.includes('branch')){
     branch();
+}
+
+
+if (argv._.includes('status')){         
+    status();
 }
 
