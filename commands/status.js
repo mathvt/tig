@@ -16,8 +16,9 @@ function status(){
     
     let stage = addedStatus();
     let mod = modifiedStatus(stage);
-    if (mod === 1 && stage.length > 0){
-        console.log()
+
+    if (mod === 1 && !stage){
+        console.log('Nothing to commit, working tree clean')
     }
 }
 
@@ -32,7 +33,7 @@ function simpl(e){
 
 function addedStatus(){
     if(!fs.existsSync('./.tig/stage.json')){
-        return
+        return [[],[]]
     }
     console.log('Changes to be commited :')
     let stage = JSON.parse(read('./.tig/stage.json'))
@@ -44,8 +45,7 @@ function addedStatus(){
 
 
 function modifiedStatus(stage){
-    let keysStage = [];
-    stage && (keysStage = stage[0])
+    let keysStage = stage[0]
     keysStage = keysStage.map(f => ['./.tig/stage/'+f[0],f[1]]) 
     let stageFiles = keysStage.map(e => e[1]) 
 
@@ -61,14 +61,12 @@ function modifiedStatus(stage){
     let project = readfullpath('.');
     let result = compareAllFiles(project, keysStage)
     if (result.every(f => f.length === 0)){
-        return
+        return 1
     }
     console.log('\nChanges not staged for commit')
     result[0].forEach(e => console.log(red,'     modified :   ' + simpl(e)))
     result[1].forEach(e => console.log(red,'     added :   ' + simpl(e)))
     result[2].forEach(e => !stage[1].includes(e) && console.log(red,'     removed :   ' + simpl(e)))
-
-    return 1
 }
 
 

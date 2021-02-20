@@ -1,5 +1,6 @@
 const fs = require('fs');
 const copy = require('recursive-copy');
+const { isString } = require('util');
 const { read, askMsg, readfullpath, readTree } = require('../myFunctions')
 
 
@@ -8,7 +9,7 @@ const { read, askMsg, readfullpath, readTree } = require('../myFunctions')
 function revert(num){
     return new Promise(function(res){
         let tree = JSON.parse(read('./.tig/tree.json'));
-        if(testIfValid(num, tree) === 0){
+        if(testIfValid(num, tree)){
             return console.log('invalid id')
         }
         askMsg('you will lose all change that have not been commited. Continue ? y/n')
@@ -63,10 +64,11 @@ function removeFileAndDir(files, newFilesList){
 
 
 function testIfValid(num, tree){
+    num = num.toString()
     for (let key in tree){
         if (key === num){
-            return 1
+            return false
         }
     }
-    return 0
+    return true
 }
