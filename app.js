@@ -64,7 +64,8 @@ if (argv._.includes('history')){
 
 
 if (argv._.includes('revert')){
-    revert(argv.numToREv);
+    revert(argv.numToREv)
+    .catch((err) => console.err(err))
 }
 
 

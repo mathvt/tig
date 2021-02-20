@@ -49,6 +49,7 @@ function changeBranch(name){
             fs.writeFileSync('./.tig/header.txt', head, err => console.error(err));               
         }
     })
+    .catch((err) => console.err(err))
 }
 
 

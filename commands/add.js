@@ -109,7 +109,7 @@ function manageAdded(stage){
     let toadd = stage[0].concat(stage[1]);
     key = hashAndCopy(toadd, './.tig/stage/')
     .then(function(key){
-        stage = [key, stage[2]];
+        stage = [key, stage[2], stage[0], stage[1]];
         stage = JSON.stringify(stage);
         fs.writeFileSync('./.tig/stage.json', stage, err => console.error(err));         
     })
@@ -120,38 +120,58 @@ function manageAdded(stage){
 // make 3 lists of files : modified, add, remove
 function staging(project, test, files){
     let old = []
-    let oldName = []
     if(fs.existsSync('./.tig/header.txt')){
         let tree = JSON.parse(read('./.tig/tree.json'));
         let path = read('./.tig/header.txt');
-        old = readTree(tree[path], tree); //...[hash, filesname]
-        oldName = old.map(e => e[1]);// [...filesname]        
+        old = readTree(tree[path], tree); //...[hash, filesname]      
     }
-    let add = [];
-    let remove = [];
-    let modified = [];
+    let result;
     if(test === 'all'){      // add .
-        add = project.filter(f => !oldName.includes(f) && !fs.lstatSync(f).isDirectory());
-        remove = oldName.filter(f => !project.includes(f));
-        modified = old.filter(f =>
-            project.includes(f[1]) && !fs.lstatSync(f[1]).isDirectory() &&
-            !Buffer.from(read(f[1])).equals(Buffer.from(read('./.tig/data/'+f[0])))
-        );
+        result =compareAllFiles(project, old);
     }   
     else if(test === 'exist'){      // add "existing file or dir"
-        add = project.filter(f => !oldName.includes(f) && !fs.lstatSync(f).isDirectory());
-        project.lenght === 1 && (remove = oldName.filter(f => project.includes(f)) && !files.includes(f));
-        project.lenght > 1 && (remove = oldName.filter(f => !project.includes(f)) && !files.includes(f));
-        modified = old.filter(
-            f => project.includes(f[1]) && !Buffer.from(read(f[1])).equals(Buffer.from(read('./.tig/data/'+f[0])))
-        );
+        result = compareSomeFiles(project, old, files)
     }
     else if(test === 'notexist'){      // add "deleted file or dir"
-        let reConstructor = '^'+project;
-        re = new RegExp(reConstructor);
-        remove = oldName.filter(f => re.test(f));
+        result = compareMissingFiles(project, old)
     }
 
-    modified = modified.map(e => e[1]);
-    return [modified, add, remove];
+    result[0] = result[0].map(e => e[1]);
+    return result;
+}
+
+
+
+function compareAllFiles(project, old){
+    let oldName = old.map(e => e[1]);
+    let add = project.filter(f => !oldName.includes(f) && !fs.lstatSync(f).isDirectory());
+    let remove = oldName.filter(f => !project.includes(f));
+    let modified = old.filter(f =>
+        project.includes(f[1]) && !fs.lstatSync(f[1]).isDirectory() &&
+        !Buffer.from(read(f[1])).equals(Buffer.from(read('./.tig/data/'+f[0])))
+    );
+        return [modified, add, remove]
+}
+
+
+function compareSomeFiles(project, old, files){
+    let oldName = old.map(e => e[1]);
+    let add = project.filter(f => !oldName.includes(f) && !fs.lstatSync(f).isDirectory());
+    let remove = [];
+    project.lenght === 1 && (remove = oldName.filter(f => project.includes(f)) && !files.includes(f));
+    project.lenght > 1 && (remove = oldName.filter(f => !project.includes(f)) && !files.includes(f));
+    let modified = old.filter(
+        f => project.includes(f[1]) && !Buffer.from(read(f[1])).equals(Buffer.from(read('./.tig/data/'+f[0])))
+    );
+    return [modified, add, remove]
+}
+
+
+function compareMissingFiles(project, old){
+    let oldName = old.map(e => e[1]);
+    let reConstructor = '^'+project;
+    re = new RegExp(reConstructor);
+    let remove = oldName.filter(f => re.test(f));
+
+    return [[], [], remove]
 }
