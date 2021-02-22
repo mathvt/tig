@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { read, readTree, readfullpath, excludeFiles } = require('../myFunctions');
+const { read, readTree, readfullpath, excludeFiles, simpl } = require('../myFunctions');
 const { compareAllFiles } = require('./add')
 
 
@@ -22,13 +22,6 @@ function status(){
     }
 }
 
-
-
-
-
-function simpl(e){
-    return e.replace('./','')
-}
 
 
 function addedStatus(){

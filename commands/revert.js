@@ -9,7 +9,7 @@ const { read, askMsg, readfullpath, readTree, excludeFiles, checkFileName } = re
 function revert(num, fileToRevert){
     return new Promise(function(res){
         let tree = JSON.parse(read('./.tig/tree.json'));
-        if(!num || num === 'header'){
+        if(num === undefined || num === 'header'){
             num = read('./.tig/header.txt')
         } 
         if(testIfValid(num, tree)){
@@ -25,7 +25,7 @@ function revert(num, fileToRevert){
                 console.log('Aborded')
                 return res('Aborted')
             }
-            let revertKeys = readTree(tree[num], tree);     // hash and files name of the commit id
+            let revertKeys = readTree(tree[num], tree);    // hash and files name of the commit id
             if(fileToRevert){
                 revertKeys = revertKeys.filter(e => e[1] === checkFileName(fileToRevert))
             }

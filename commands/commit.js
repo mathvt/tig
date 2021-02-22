@@ -1,5 +1,5 @@
 const fs = require('fs')
-const { readfullpath, askMsg, read } = require('../myFunctions');
+const { readfullpath, askMsg, read, simpl } = require('../myFunctions');
 
 
     function commit(msg){
@@ -15,9 +15,9 @@ const { readfullpath, askMsg, read } = require('../myFunctions');
                 let stage = JSON.parse(read('./.tig/stage.json'));
                 let key = stage[0];
                 let remove = stage[1];
-                key.length !== 0 && console.log('files added of modified :')
-                key.forEach(e => console.log('   '+e[1]))
-                remove.length !== 0 && console.log('removed :')
+                stage[2].forEach(e => console.log(green,'     modified :   ' + simpl(e)))
+                stage[3].forEach(e => console.log(green,'     added :   ' + simpl(e)))
+                stage[1].forEach(e => console.log(green,'     removed :   ' + simpl(e)))
                 remove.forEach(e => console.log('   '+e))
                 files = readfullpath('./.tig/data/')
 

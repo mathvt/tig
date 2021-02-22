@@ -10,8 +10,7 @@ function readTree(leaf, tree){
     let keys = leaf.keys;
     let filesName = keys.map(e => e[1])
     let ignore = leaf['ignoreFile'];
-
-    if (leaf.next){
+    if (leaf.next !== null){
         readTree(tree[leaf.next] ,tree).forEach(f => {
             if(!filesName.includes(f[1]) && !ignore.includes(f[1])){
                 keys.push(f)
@@ -104,7 +103,9 @@ function checkFileName(file){
     }
 }
 
+function simpl(e){
+    return e.replace('./','')
+}
 
 
-
-module.exports = {hashAndCopy, readfullpath, askMsg, readTree, read, excludeFiles, checkFileName}
+module.exports = {hashAndCopy, readfullpath, askMsg, readTree, read, excludeFiles, checkFileName, simpl}

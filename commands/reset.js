@@ -8,7 +8,7 @@ function reset(file){
     }
     file = checkFileName(file);
     let stage = JSON.parse(read('./.tig/stage.json'));
-    if(!file || stage.every(e => !e.includes(file))){
+    if(file && stage.every(e => !e.includes(file))){
         return console.log('file not found')
     }
     if(file){
