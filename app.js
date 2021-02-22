@@ -7,7 +7,7 @@ const { history } = require('./commands/history')
 const { revert } = require('./commands/revert')
 const { branch, createNewBranch, changeBranch } = require('./commands/branch')
 const { status } = require('./commands/status');
-const { reset } = require('yargs');
+const { reset } = require('./commands/reset');
 
 
 

@@ -60,7 +60,7 @@ function modifiedStatus(stage){
     old.forEach(e => !stageFiles.includes(e[1]) && keysStage.push(e));
     let project = excludeFiles(readfullpath('.'));
     let result = compareAllFiles(project, keysStage)
-    if (result.every(f => f.length === 0)){
+    if (result[0].length === 0 && result[1].length === 0 && result[2].every(e => stage[1].includes(e))){
         return 1
     }
     console.log('\nChanges not staged for commit')

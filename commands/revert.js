@@ -9,7 +9,9 @@ const { read, askMsg, readfullpath, readTree, excludeFiles, checkFileName } = re
 function revert(num, fileToRevert){
     return new Promise(function(res){
         let tree = JSON.parse(read('./.tig/tree.json'));
-        !num && (num = read('./.tig/header.txt'))
+        if(!num || num === 'header'){
+            num = read('./.tig/header.txt')
+        } 
         if(testIfValid(num, tree)){
             return console.log('invalid id')
         }
