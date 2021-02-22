@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { readfullpath, hashAndCopy, read, readTree } = require('../myFunctions');
+const { readfullpath, hashAndCopy, read, readTree, excludeFiles } = require('../myFunctions');
 
 //TODO unstage
 
@@ -24,7 +24,7 @@ function addSomething(project){
     if(!fs.existsSync('./.tig')){
         return console.log('project not initialized');
     }
-    project = './'+ project;
+    project = './'+ project; // don't like it
     files = readfullpath('.');
     let stage;
     if(fs.existsSync(project)){
@@ -136,6 +136,7 @@ function staging(project, test, files){
     else if(test === 'notexist'){      // add "deleted file or dir"
         result = compareMissingFiles(project, old)
     }
+    result = result.map(e => excludeFiles(e))
     return result;
 }
 

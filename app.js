@@ -1,5 +1,13 @@
 const yargs = require('yargs');
 
+const { init } = require('./commands/init');
+const { addDot, addSomething } = require('./commands/add')
+const { commit } = require('./commands/commit')
+const { history } = require('./commands/history')
+const { revert } = require('./commands/revert')
+const { branch, createNewBranch, changeBranch } = require('./commands/branch')
+const { status } = require('./commands/status')
+
 
 
 const argv = yargs
@@ -33,58 +41,43 @@ const argv = yargs
 
 
 
-const { init } = require('./commands/init');
-const { addDot, addSomething } = require('./commands/add')
-const { commit } = require('./commands/commit')
-const { history } = require('./commands/history')
-const { revert } = require('./commands/revert')
-const { branch, createNewBranch, changeBranch } = require('./commands/branch')
-const { status } = require('./commands/status')
+if (argv._.includes('commit')){
+    commit(argv.message);
+}
 
-
-if (argv._.includes('init')){         
+else if (argv._.includes('init')){         
     init();
 }
 
-
-if (argv._.includes('add') && argv.option === '.'){
+else if (argv._.includes('add') && argv.option === '.'){
     addDot();
 }
+
 else if(argv._.includes('add') && argv.option){
     addSomething(argv.option);
 }
 
-
-if (argv._.includes('commit')){
-    commit(argv.message);
-}    
-
-
-if (argv._.includes('history')){
+else if (argv._.includes('history')){
     history(argv.numToShow);
 }
 
-
-if (argv._.includes('revert')){
+else if (argv._.includes('revert')){
     revert(argv.numToREv)
     .catch((err) => console.err(err))
 }
 
-
-if (argv._.includes('switch') && argv.branchName){
-    changeBranch(argv.branchName,);
+else if (argv._.includes('switch') && argv.branchName){
+    changeBranch(argv.branchName);
 }
+
 else if (argv._.includes('switch') && argv.newBranch){
     createNewBranch(argv.newBranch);
 }
 
-
-if (argv._.includes('branch')){
+else if (argv._.includes('branch')){
     branch();
 }
 
-
-if (argv._.includes('status')){         
+else if (argv._.includes('status')){         
     status();
 }
-

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const copy = require('recursive-copy');
 const { isString } = require('util');
-const { read, askMsg, readfullpath, readTree } = require('../myFunctions')
+const { read, askMsg, readfullpath, readTree, excludeFiles } = require('../myFunctions')
 
 
 
@@ -21,14 +21,14 @@ function revert(num){
             }
             let revertKeys = readTree(tree[num], tree);     // hash and files name of the commit id
             let newFilesList = revertKeys.map(e => e[1]);
-            files = readfullpath('.');
+            files = excludeFiles(readfullpath('.'));
             files = removeFileAndDir(files, newFilesList);  // rm files and dir that does not match
             revertKeys.forEach(f => {                       //compare files and remove those that have been modified
                 if(files.includes(f[1]) && !Buffer.from(read(f[1])).equals(Buffer.from(read('./.tig/data/'+f[0])))){
                     fs.rmSync(f[1])
                 }
             })
-            files = readfullpath('.');
+            files = excludeFiles(readfullpath('.'));
             revertKeys.forEach(f => {       //copy files (replace those previously deleted if needed)
                 if(!files.includes(f[1])){
                     copy('./.tig/data/'+f[0], f[1])
@@ -55,7 +55,7 @@ function removeFileAndDir(files, newFilesList){
         }
     })
     if(i > 0){
-        files = readfullpath('.')
+        files = excludeFiles(readfullpath('.')) 
         removeFileAndDir(files, newFilesList)
     }
     return files;

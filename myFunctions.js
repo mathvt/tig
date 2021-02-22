@@ -33,7 +33,7 @@ function readfullpath(dir){
     let folder = fs.readdirSync(dir)
     folder.length === 0 && files.push(dir)
     folder.forEach(f => {        
-        if(/tig/g.test(f)){}                                // use that to ignore files in the futur
+        if(/tig/g.test(f)){}
         else if (fs.lstatSync(dir+'/'+f).isDirectory()){
             files = files.concat(readfullpath(dir+'/'+f));
         }
@@ -42,6 +42,13 @@ function readfullpath(dir){
         }
     })
     return files;
+}
+
+
+function excludeFiles(files){
+    let reList = read('./.tig/exclude.txt').split('\n').filter(e => !(/^#/).test(e)).map(e => new RegExp(e))
+    reList.length > 0 && reList.forEach(e => files = files.filter(f => !e.test(f)));
+    return files
 }
 
 
@@ -85,4 +92,4 @@ function hashAndCopy(addFiles, path, alreadyStaged){
 }
 
 
-module.exports = {hashAndCopy, readfullpath, askMsg, readTree, read}
+module.exports = {hashAndCopy, readfullpath, askMsg, readTree, read, excludeFiles}

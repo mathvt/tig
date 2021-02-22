@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { read, readTree, readfullpath } = require('../myFunctions');
+const { read, readTree, readfullpath, excludeFiles } = require('../myFunctions');
 const { compareAllFiles } = require('./add')
 
 
@@ -17,7 +17,7 @@ function status(){
     let stage = addedStatus();
     let mod = modifiedStatus(stage);
 
-    if (mod === 1 && !stage){
+    if (mod === 1 && stage.every(e => e.length === 0)){
         console.log('Nothing to commit, working tree clean')
     }
 }
@@ -58,7 +58,7 @@ function modifiedStatus(stage){
     old = readTree(tree[path], tree);
     old = old.map(f => ['./.tig/data/'+f[0],f[1]])
     old.forEach(e => !stageFiles.includes(e[1]) && keysStage.push(e));
-    let project = readfullpath('.');
+    let project = excludeFiles(readfullpath('.'));
     let result = compareAllFiles(project, keysStage)
     if (result.every(f => f.length === 0)){
         return 1
