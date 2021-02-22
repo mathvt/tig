@@ -5,4 +5,7 @@ available commands :
     commit 
     history [number to show]
     revert <commit id>
-
+    branch
+    switch <branch>
+    switch -c <branch>
+    status
