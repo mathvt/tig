@@ -4,7 +4,7 @@ available commands :
     add <file or folder>
     commit 
     history [number to show]
-    revert <commit id>
+    revert [commit id] [filename]
     branch
     switch <branch>
     switch -c <branch>

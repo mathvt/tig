@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { readfullpath, hashAndCopy, read, readTree, excludeFiles } = require('../myFunctions');
+const { readfullpath, hashAndCopy, read, readTree, excludeFiles, checkFileName } = require('../myFunctions');
 
 //TODO unstage
 
@@ -20,29 +20,29 @@ function addDot(){
 }
 
 
-function addSomething(project){
+function addSomething(fileOrDir){
     if(!fs.existsSync('./.tig')){
-        return console.log('project not initialized');
+        return console.log('fileOrDir not initialized');
     }
-    project = './'+ project; // don't like it
+    fileOrDir = checkFileName(fileOrDir); // don't like it
     files = readfullpath('.');
     let stage;
-    if(fs.existsSync(project)){
-        if(fs.lstatSync(project).isDirectory()){
-            project = readfullpath(project);
+    if(fs.existsSync(fileOrDir)){
+        if(fs.lstatSync(fileOrDir).isDirectory()){
+            fileOrDir = readfullpath(fileOrDir);
         }
         else{
-            project = [project];
+            fileOrDir = [fileOrDir];
         }
-        stage = staging(project, 'exist', files);
+        stage = staging(fileOrDir, 'exist', files);
     }
     else{
-        stage = staging(project, 'notexist', files);
+        stage = staging(fileOrDir, 'notexist', files);
     }
     if (stage.every(f => f.length === 0)){
         return console.log('nothing change');
     }
-    manageAddedBis(stage, project);
+    manageAddedBis(stage, fileOrDir);
 }
 
 

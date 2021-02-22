@@ -1,16 +1,20 @@
 const fs = require('fs');
 const copy = require('recursive-copy');
 const { isString } = require('util');
-const { read, askMsg, readfullpath, readTree, excludeFiles } = require('../myFunctions')
+const { read, askMsg, readfullpath, readTree, excludeFiles, checkFileName } = require('../myFunctions')
 
 
 
 // revert but not commit
-function revert(num){
+function revert(num, fileToRevert){
     return new Promise(function(res){
         let tree = JSON.parse(read('./.tig/tree.json'));
+        !num && (num = read('./.tig/header.txt'))
         if(testIfValid(num, tree)){
             return console.log('invalid id')
+        }
+        if(fs.existsSync('./.tig/stage.json')){
+            return console.log('Clean stage area before revert(commit or reset)');
         }
         askMsg('you will lose all change that have not been commited. Continue ? y/n')
         .then(function(msg){
@@ -20,9 +24,17 @@ function revert(num){
                 return res('Aborted')
             }
             let revertKeys = readTree(tree[num], tree);     // hash and files name of the commit id
+            if(fileToRevert){
+                revertKeys = revertKeys.filter(e => e[1] === checkFileName(fileToRevert))
+            }
+            if(revertKeys.length === 0){                // test if given file was commited
+                return console.log('file not found')
+            }        
             let newFilesList = revertKeys.map(e => e[1]);
             files = excludeFiles(readfullpath('.'));
-            files = removeFileAndDir(files, newFilesList);  // rm files and dir that does not match
+            if (!fileToRevert){
+                files = removeFileAndDir(files, newFilesList);  // rm files and dir that does not match
+            }
             revertKeys.forEach(f => {                       //compare files and remove those that have been modified
                 if(files.includes(f[1]) && !Buffer.from(read(f[1])).equals(Buffer.from(read('./.tig/data/'+f[0])))){
                     fs.rmSync(f[1])

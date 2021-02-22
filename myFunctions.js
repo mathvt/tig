@@ -92,4 +92,19 @@ function hashAndCopy(addFiles, path, alreadyStaged){
 }
 
 
-module.exports = {hashAndCopy, readfullpath, askMsg, readTree, read, excludeFiles}
+function checkFileName(file){
+    if(!file || /^\.\//.test(file)){
+        return file
+    }
+    else if(/^\//.test(file)){
+        return '.'+file
+    }
+    else{
+        return './'+file
+    }
+}
+
+
+
+
+module.exports = {hashAndCopy, readfullpath, askMsg, readTree, read, excludeFiles, checkFileName}

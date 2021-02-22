@@ -6,7 +6,8 @@ const { commit } = require('./commands/commit')
 const { history } = require('./commands/history')
 const { revert } = require('./commands/revert')
 const { branch, createNewBranch, changeBranch } = require('./commands/branch')
-const { status } = require('./commands/status')
+const { status } = require('./commands/status');
+const { reset } = require('yargs');
 
 
 
@@ -21,7 +22,8 @@ const argv = yargs
     })
     .command('add <option>', 'add . stage all files, or add <file or dir> only stage specified location')
     .command('history [numToShow]', 'show history of commit')
-    .command('revert <numToREv>', 'revert almost like in git')
+    .command('revert [numToREv] [file]', 'revert but not commit')
+    .command('reset [file]', 'remove file from stage')
     .command('switch [branchName]', 'change or create new branch',{
         newBranch: {
             description: 'create a new branch',
@@ -62,8 +64,12 @@ else if (argv._.includes('history')){
 }
 
 else if (argv._.includes('revert')){
-    revert(argv.numToREv)
+    revert(argv.numToREv, argv.file)
     .catch((err) => console.err(err))
+}
+
+else if(argv._.includes('reset')){
+    reset(argv.file);
 }
 
 else if (argv._.includes('switch') && argv.branchName){
