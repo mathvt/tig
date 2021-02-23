@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { read, readTree, readfullpath, excludeFiles, simpl } = require('../myFunctions');
+const { read, readTree, simpl, readPath } = require('../myFunctions');
 const { compareAllFiles } = require('./add')
 
 
@@ -51,7 +51,7 @@ function modifiedStatus(stage){
     old = readTree(tree[path], tree);
     old = old.map(f => ['./.tig/data/'+f[0],f[1]])
     old.forEach(e => !stageFiles.includes(e[1]) && keysStage.push(e));
-    let project = excludeFiles(readfullpath('.'));
+    let project = readPath('.');
     let result = compareAllFiles(project, keysStage)
     if (result[0].length === 0 && result[1].length === 0 && result[2].every(e => stage[1].includes(e))){
         return 1

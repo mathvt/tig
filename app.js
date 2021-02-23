@@ -1,4 +1,5 @@
 const yargs = require('yargs');
+const fs = require('fs')
 
 const { init } = require('./commands/init');
 const { addDot, addSomething } = require('./commands/add')
@@ -43,47 +44,55 @@ const argv = yargs
 
 
 
-if (argv._.includes('commit')){
-    commit(argv.message);
-}
+(function(){
+    if (!argv._.includes('init') && !fs.existsSync('./.tig')){         
+        return console.log('Project not initialized');
+    }
 
-else if (argv._.includes('init')){         
-    init();
-}
 
-else if (argv._.includes('add') && argv.option === '.'){
-    addDot();
-}
+    if (argv._.includes('commit')){
+        commit(argv.message);
+    }
 
-else if(argv._.includes('add') && argv.option){
-    addSomething(argv.option);
-}
+    else if (argv._.includes('init')){         
+        init();
+    }
 
-else if (argv._.includes('history')){
-    history(argv.numToShow);
-}
+    else if (argv._.includes('add') && argv.option === '.'){
+        addDot();
+    }
 
-else if (argv._.includes('revert')){
-    revert(argv.numToREv, argv.file)
-    .catch((err) => console.err(err))
-}
+    else if(argv._.includes('add') && argv.option){
+        addSomething(argv.option);
+    }
 
-else if(argv._.includes('reset')){
-    reset(argv.file);
-}
+    else if (argv._.includes('history')){
+        history(argv.numToShow);
+    }
 
-else if (argv._.includes('switch') && argv.branchName){
-    changeBranch(argv.branchName);
-}
+    else if (argv._.includes('revert')){
+        revert(argv.numToREv, argv.file)
+        .catch((err) => console.err(err))
+    }
 
-else if (argv._.includes('switch') && argv.newBranch){
-    createNewBranch(argv.newBranch);
-}
+    else if(argv._.includes('reset')){
+        reset(argv.file);
+    }
 
-else if (argv._.includes('branch')){
-    branch();
-}
+    else if (argv._.includes('switch') && argv.branchName){
+        changeBranch(argv.branchName);
+    }
 
-else if (argv._.includes('status')){         
-    status();
-}
+    else if (argv._.includes('switch') && argv.newBranch){
+        createNewBranch(argv.newBranch);
+    }
+
+    else if (argv._.includes('branch')){
+        branch();
+    }
+
+    else if (argv._.includes('status')){         
+        status();
+    }
+})()
+

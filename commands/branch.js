@@ -55,9 +55,6 @@ function changeBranch(name){
 
 
 function branch(){
-    if(!fs.existsSync('./.tig')){
-        return console.log('project not initialized');
-    }
     let current = read('./.tig/branch.txt')
     let branchList = listBranch();
     !branchList.includes(current) && branchList.push(current);

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const copy = require('recursive-copy');
 const { isString } = require('util');
-const { read, askMsg, readfullpath, readTree, excludeFiles, checkFileName } = require('../myFunctions')
+const { read, askMsg, readTree, checkFileName, readPath } = require('../myFunctions')
 
 
 
@@ -33,7 +33,7 @@ function revert(num, fileToRevert){
                 return console.log('file not found')
             }        
             let newFilesList = revertKeys.map(e => e[1]);
-            files = excludeFiles(readfullpath('.'));
+            files = readPath('.');
             if (!fileToRevert){
                 files = removeFileAndDir(files, newFilesList);  // rm files and dir that does not match
             }
@@ -42,7 +42,7 @@ function revert(num, fileToRevert){
                     fs.rmSync(f[1])
                 }
             })
-            files = excludeFiles(readfullpath('.'));
+            files = readPath('.');
             revertKeys.forEach(f => {       //copy files (replace those previously deleted if needed)
                 if(!files.includes(f[1])){
                     copy('./.tig/data/'+f[0], f[1])
@@ -69,7 +69,7 @@ function removeFileAndDir(files, newFilesList){
         }
     })
     if(i > 0){
-        files = excludeFiles(readfullpath('.')) 
+        files = readPath('.'); 
         removeFileAndDir(files, newFilesList)
     }
     return files;

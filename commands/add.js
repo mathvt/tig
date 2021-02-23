@@ -1,13 +1,10 @@
 const fs = require('fs');
-const { readfullpath, hashAndCopy, read, readTree, excludeFiles, checkFileName } = require('../myFunctions');
+const { readPath, hashAndCopy, read, readTree, checkFileName } = require('../myFunctions');
 
 //TODO unstage
 
 function addDot(){
-    if(!fs.existsSync('./.tig')){
-        return console.log('project not initialized');
-    }
-    let project = readfullpath('.');
+    let project = readPath('.');
     let stage = staging(project, 'all');
     if (stage.every(f => f.length === 0)){
         return console.log('nothing change');
@@ -19,17 +16,13 @@ function addDot(){
     manageAdded(stage);
 }
 
-
 function addSomething(fileOrDir){
-    if(!fs.existsSync('./.tig')){
-        return console.log('fileOrDir not initialized');
-    }
-    fileOrDir = checkFileName(fileOrDir); // don't like it
-    files = readfullpath('.');
+    fileOrDir = checkFileName(fileOrDir);
+    files = readPath('.');
     let stage;
     if(fs.existsSync(fileOrDir)){
         if(fs.lstatSync(fileOrDir).isDirectory()){
-            fileOrDir = readfullpath(fileOrDir);
+            fileOrDir = readPath(fileOrDir);
         }
         else{
             fileOrDir = [fileOrDir];
@@ -52,24 +45,13 @@ function addSomething(fileOrDir){
 // for spécified file of dir to stage
 // make the staging area and save changes for the next commit
 function manageAddedBis(stage, project){
-    if(stage[0].length > 0) {
-        console.log('modified :');
-        stage[0].forEach(f => console.log('     '+f));
-    }
-    if(stage[1].length > 0) {
-        console.log('added :');
-        stage[1].forEach(f => console.log('     '+f));
-    }
-    if(stage[2].length > 0) {
-        console.log('removed :');
-        stage[2].forEach(f => console.log('     '+f));
-    }
+    showChanges(stage);
     let oldStage = [[],[]];
     if(fs.existsSync('./.tig/stage.json')){
         oldStage = JSON.parse(read('./.tig/stage.json'));
     }
     let toadd = stage[0].concat(stage[1]);
-    key = hashAndCopy(toadd, './.tig/stage/', readfullpath('./.tig/stage/'))
+    key = hashAndCopy(toadd, './.tig/stage/', fs.readdirSync('./.tig/stage/'))
     .then(function(key){
         oldStage[0].forEach(e =>{ 
             if(toadd.includes(e[1]) && !key.includes(e)){
@@ -94,18 +76,7 @@ function manageAddedBis(stage, project){
 // for add .
 // like the last function but compare all files and dir
 function manageAdded(stage){
-    if(stage[0].length > 0) {
-        console.log('modified :');
-        stage[0].forEach(f => console.log('     '+f));
-    }
-    if(stage[1].length > 0) {
-        console.log('added :');
-        stage[1].forEach(f => console.log('     '+f));
-    }
-    if(stage[2].length > 0) {
-        console.log('removed :');
-        stage[2].forEach(f => console.log('     '+f));
-    }
+    showChanges(stage);
     let toadd = stage[0].concat(stage[1]);
     key = hashAndCopy(toadd, './.tig/stage/')
     .then(function(key){
@@ -136,7 +107,7 @@ function staging(project, test, files){
     else if(test === 'notexist'){      // add "deleted file or dir"
         result = compareMissingFiles(project, old)
     }
-    result = result.map(e => excludeFiles(e))
+    //result = result.map(e => excludeFiles(e))
     return result;
 }
 
@@ -165,7 +136,7 @@ function compareSomeFiles(project, old, files){
     let modified = old.filter(
         f => project.includes(f[1]) && !Buffer.from(read(f[1])).equals(Buffer.from(read(f[0])))
     );
-    modified.map(e => e[1])
+    modified = modified.map(e => e[1])
     return [modified, add, remove]
 }
 
@@ -178,5 +149,22 @@ function compareMissingFiles(project, old){
 
     return [[], [], remove]
 }
+
+
+function showChanges(stage){
+    if(stage[0].length > 0) {
+        console.log('modified :');
+        stage[0].forEach(f => console.log('     '+f));
+    }
+    if(stage[1].length > 0) {
+        console.log('added :');
+        stage[1].forEach(f => console.log('     '+f));
+    }
+    if(stage[2].length > 0) {
+        console.log('removed :');
+        stage[2].forEach(f => console.log('     '+f));
+    }
+}
+
 
 module.exports = {addDot, addSomething, compareAllFiles}
