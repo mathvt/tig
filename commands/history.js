@@ -2,22 +2,28 @@ const { read } = require('../myFunctions')
 
 // return the last x commit
 function history(num){
-    let tree = JSON.parse(read('./.tig/tree.json'));
-    let path = read('./.tig/header.txt');
-    let hist = [];
+    let histo = commitHistory();
     if(num){
         num = parseInt(num, 10)
     }
-    for (let key in tree){
-        tree[key]['no'] = key;
-        hist.unshift(tree[key])
-    }
-    for (data of hist){
-        let info = data.no + '   ' + data.branch + '   ' + data.comment
-        console.log((path == data.no) ? '*'+info : ''+info);
+
+    for (data of histo){
+        let info = data.id.slice(0,8) + '   ' + data.comment
+        console.log(info);
         num && num--;
         if (num <= 0){return}
     }
 }
 
 module.exports = {history}
+
+
+function commitHistory(commit){
+    let id = commit || read('./.tig/header')
+    commit = read('./.tig/object/'+id).split('\n')
+    let hist = [{id, comment: commit[1]}]
+    if(commit[2] !== 'null'){
+        hist = hist.concat(commitHistory(commit[2]))
+    }
+    return hist
+}

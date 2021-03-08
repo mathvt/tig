@@ -10,7 +10,7 @@ function revert(num, fileToRevert){
     return new Promise(function(res){
         let tree = JSON.parse(read('./.tig/tree.json'));
         if(num === undefined || num === 'header'){
-            num = read('./.tig/header.txt')
+            num = read('./.tig/header')
         } 
         if(testIfValid(num, tree)){
             return console.log('invalid id')

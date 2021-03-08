@@ -3,9 +3,4 @@ available commands :
     add .
     add <file or folder>
     commit 
-    history [number to show]
-    revert [commit id] [filename]
-    branch
-    switch <branch>
-    switch -c <branch>
-    status
+    log [number to show]

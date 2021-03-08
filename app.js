@@ -9,7 +9,7 @@ const { revert } = require('./commands/revert')
 const { branch, createNewBranch, changeBranch } = require('./commands/branch')
 const { status } = require('./commands/status');
 const { reset } = require('./commands/reset');
-
+const { merge } = require('./commands/merge');
 
 
 const argv = yargs
@@ -22,7 +22,7 @@ const argv = yargs
         }
     })
     .command('add <option>', 'add . stage all files, or add <file or dir> only stage specified location')
-    .command('history [numToShow]', 'show history of commit')
+    .command('log [numToShow]', 'show history of commit')
     .command('revert [numToREv] [file]', 'revert but not commit')
     .command('reset [file]', 'remove file from stage')
     .command('switch [branchName]', 'change or create new branch',{
@@ -34,6 +34,7 @@ const argv = yargs
     })
     .command('branch', 'list existing branch')
     .command('status', 'status')
+    .command('merge [name]', 'merge')
 
     .command('$0', 'the default command', () => {}, (argv) => {
         console.log('wrong command')
@@ -66,7 +67,7 @@ const argv = yargs
         addSomething(argv.option);
     }
 
-    else if (argv._.includes('history')){
+    else if (argv._.includes('log')){
         history(argv.numToShow);
     }
 
@@ -93,6 +94,9 @@ const argv = yargs
 
     else if (argv._.includes('status')){         
         status();
+    }
+    else if (argv._.includes('merge')){
+        merge(argv.name);
     }
 })()
 

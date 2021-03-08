@@ -17,7 +17,7 @@ function readTree(leaf, tree){
             }
         });
     }
-
+    
     return keys;
 }
 
@@ -71,23 +71,26 @@ function askMsg (mess){
 }
 
 
-function hashAndCopy(addFiles, path, alreadyStaged){
+function hashAndCopy(addFiles, path){
     return new Promise (function(key){
         let keys = [];
+        let doNotRm = [];
         if(addFiles.length === 0){
-            return key(keys)
+            return key([keys,doNotRm])
         }
-        let test = alreadyStaged || [];
+        let files = fs.readdirSync('./.tig/object/')
         addFiles.forEach(function(f) {
             sha1(f)
             .then(h => {
-                if (!test.includes(h)){
+                if (!files.includes(h)){
                     copy(f, path + h, (err) => err && console.error(err));
-                    test.push(h); 
+                }
+                else{
+                    doNotRm.push(h);
                 }
                 keys.push([h,f]);
                 if(keys.length === addFiles.length){
-                    return key(keys);
+                    return key([keys,doNotRm]);
                 }
             })
             .catch ((err) => console.error(err));            
@@ -113,4 +116,34 @@ function simpl(e){
 }
 
 
-module.exports = {hashAndCopy, excludeFiles, askMsg, readTree, read, readPath, checkFileName, simpl, readfullpath}
+function lastCommitOfBranch(name, tree){
+    let branchCommit = []
+    for (let key in tree){
+        if (tree[key]['branch'] === name){
+            branchCommit.unshift(key)
+        }
+    }
+    return branchCommit[0];
+}
+
+
+function readCommit(id){
+    id = id || fs.existsSync('./.tig/header') && read('./.tig/header') || false;
+    if (id === false){
+        return [];
+    }
+    let commit = read('./.tig/object/'+id).split('\n')
+    let tree = commit[0]
+    return read('./.tig/object/'+tree).split('\n').map(e => e.split('  '));
+}
+
+
+function readIndex(){
+    let index = read('./.tig/index').split('\n');
+    index =  index.map((e,i) => i === 0 ? e.split('  ').map(e => e.split(',')) : e.split(','));
+    return index.map(e => e[0] === '' ? [] : e);
+}
+
+
+module.exports = {hashAndCopy, askMsg, readTree, read, readPath, checkFileName, simpl, readfullpath,
+                  lastCommitOfBranch, readCommit, readIndex}

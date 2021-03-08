@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { readPath, hashAndCopy, read, readTree, checkFileName } = require('../myFunctions');
+const { readPath, hashAndCopy, read, checkFileName, readCommit, readIndex } = require('../myFunctions');
 
 //TODO unstage
 
@@ -9,28 +9,20 @@ function addDot(){
     if (stage.every(f => f.length === 0)){
         return console.log('nothing change');
     }
-    if(fs.existsSync('./.tig/stage.json')){
-        files = fs.readdirSync('./.tig/stage/');
-        files.forEach(f => fs.rmSync('./.tig/stage/'+f));
+    if(fs.existsSync('./.tig/index')){
+        unstage();
     }
     manageAdded(stage);
 }
 
 function addSomething(fileOrDir){
     fileOrDir = checkFileName(fileOrDir);
-    files = readPath('.');
     let stage;
     if(fs.existsSync(fileOrDir)){
-        if(fs.lstatSync(fileOrDir).isDirectory()){
-            fileOrDir = readPath(fileOrDir);
-        }
-        else{
-            fileOrDir = [fileOrDir];
-        }
-        stage = staging(fileOrDir, 'exist', files);
+        stage = staging(fileOrDir, 'exist');
     }
     else{
-        stage = staging(fileOrDir, 'notexist', files);
+        stage = staging(fileOrDir, 'notexist');
     }
     if (stage.every(f => f.length === 0)){
         return console.log('nothing change');
@@ -46,27 +38,32 @@ function addSomething(fileOrDir){
 // make the staging area and save changes for the next commit
 function manageAddedBis(stage, project){
     showChanges(stage);
-    let oldStage = [[],[]];
-    if(fs.existsSync('./.tig/stage.json')){
-        oldStage = JSON.parse(read('./.tig/stage.json'));
+    let oldStage = [[],[],[],[],[]];
+    if(fs.existsSync('./.tig/index')){
+        oldStage = readIndex();
     }
     let toadd = stage[0].concat(stage[1]);
-    key = hashAndCopy(toadd, './.tig/stage/', fs.readdirSync('./.tig/stage/'))
+    hashAndCopy(toadd, './.tig/object/')
     .then(function(key){
+        key[1] = key[1].concat(oldStage[4]);
         oldStage[0].forEach(e =>{ 
-            if(toadd.includes(e[1]) && !key.includes(e)){
-                fs.rmSync('./.tig/stage/'+e[0])
+            if(toadd.includes(e[1]) && !key[0].includes(e) && !key[1].includes(e[0])){
+                fs.rmSync('./.tig/object/'+e[0])
             }
             else if (!toadd.includes(e[1])){
-                key.push(e);
+                key[0].push(e);
+                stage[0].push(e[1])
             }
         });
 
-        stage[2].forEach(f => !oldStage[1].includes(f) && oldStage[1].push(f))
-        oldStage[1] = oldStage[1].filter(f => !project.includes(f))
-        stage = [key, oldStage[1], stage[0], stage[1]];
-        stage = JSON.stringify(stage);
-        fs.writeFileSync('./.tig/stage.json', stage, err => console.error(err));     
+        stage[2].forEach(f => !oldStage[3].includes(f) && oldStage[3].push(f))
+        oldStage[3] = oldStage[3].filter(f => !project.includes(f))
+
+        stage = [stage[0], stage[1], oldStage[3]];
+        let index = key[0].map(e => e.join()).join('  ');
+        stage.forEach(e => index = index + '\n' + e.join())
+        index = index + '\n' + key[1].join()
+        fs.writeFileSync('./.tig/index', index, err => console.error(err));
     })
     .catch ((err) => console.error(err));
 
@@ -78,36 +75,30 @@ function manageAddedBis(stage, project){
 function manageAdded(stage){
     showChanges(stage);
     let toadd = stage[0].concat(stage[1]);
-    key = hashAndCopy(toadd, './.tig/stage/')
+    hashAndCopy(toadd, './.tig/object/')
     .then(function(key){
-        stage = [key, stage[2], stage[0], stage[1]];
-        stage = JSON.stringify(stage);
-        fs.writeFileSync('./.tig/stage.json', stage, err => console.error(err));         
+        let index = key[0].map(e => e.join()).join('  ')
+        stage.forEach(e => index = index + '\n' + e.join())
+        index = index + '\n' + key[1].join()
+        fs.writeFileSync('./.tig/index', index, err => console.error(err));    
     })
     .catch ((err) => console.error(err));
 }
 
 
 // make 3 lists of files : modified, add, remove
-function staging(project, test, files){
-    let old = []
-    if(fs.existsSync('./.tig/header.txt')){
-        let tree = JSON.parse(read('./.tig/tree.json'));
-        let path = read('./.tig/header.txt');
-        old = readTree(tree[path], tree); //...[hash, filesname]
-        old = old.map(f => ['./.tig/data/'+f[0],f[1]])
-    }
+function staging(project, test){
+    let old = readCommit().map(f => ['./.tig/object/'+f[0],f[1]]) //...[hash, filesname]
     let result;
     if(test === 'all'){      // add .
         result =compareAllFiles(project, old);
     }   
     else if(test === 'exist'){      // add "existing file or dir"
-        result = compareSomeFiles(project, old, files)
+        result = compareSomeFiles(project, old)
     }
     else if(test === 'notexist'){      // add "deleted file or dir"
         result = compareMissingFiles(project, old)
     }
-    //result = result.map(e => excludeFiles(e))
     return result;
 }
 
@@ -127,12 +118,27 @@ function compareAllFiles(project, old){
 }
 
 
-function compareSomeFiles(project, old, files){
+function compareSomeFiles(project, old){
+    let dir = false;
+    if(fs.lstatSync(project).isDirectory()){
+        dir = project
+        project = readPath(project);
+    }
+    else{
+        project = [fileOrDir];
+    }
+    let files = readPath('.');
     let oldName = old.map(e => e[1]);
     let add = project.filter(f => !oldName.includes(f) && !fs.lstatSync(f).isDirectory());
     let remove = [];
-    project.lenght === 1 && (remove = oldName.filter(f => project.includes(f)) && !files.includes(f));
-    project.lenght > 1 && (remove = oldName.filter(f => !project.includes(f)) && !files.includes(f));
+    if(dir){
+        let reConstructor = '^'+dir;
+        re = new RegExp(reConstructor);
+        remove = oldName.filter(f => !project.includes(f) && !files.includes(f) && re.test(f));
+    }
+    else{
+        remove = oldName.filter(f => project.includes(f)) && !files.includes(f)
+    }
     let modified = old.filter(
         f => project.includes(f[1]) && !Buffer.from(read(f[1])).equals(Buffer.from(read(f[0])))
     );
@@ -164,6 +170,15 @@ function showChanges(stage){
         console.log('removed :');
         stage[2].forEach(f => console.log('     '+f));
     }
+}
+
+
+function unstage(){
+    let index = read('./.tig/index').split('\n')
+    let key = index[0].split('  ').map(e => e.split(','));
+    let doNotRm = index[4].split(',');
+    key.forEach(e => !doNotRm.includes(e[0]) && fs.rmSync('./.tig/object/'+e[0]))
+    fs.rmSync('./.tig/index');
 }
 
 

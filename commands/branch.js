@@ -1,5 +1,5 @@
 const fs = require('fs');
-const {read} = require('../myFunctions');
+const {read, lastCommitOfBranch} = require('../myFunctions');
 const {revert} = require('./revert')
 
 
@@ -35,18 +35,12 @@ function changeBranch(name){
         return console.log('Please commit or unstage before switching branch');
     }
     let tree = JSON.parse(read('./.tig/tree.json'));
-    let branchCommit = []
-    for (let key in tree){
-        if (tree[key]['branch'] === name){
-            branchCommit.unshift(key)
-        }
-    }
-    let head = branchCommit[0];
+    let head = lastCommitOfBranch(name, tree)
     revert(head)
     .then((res) => {
         if(res === 'Done'){
             fs.writeFileSync('./.tig/branch.txt', name, err => console.error(err));
-            fs.writeFileSync('./.tig/header.txt', head, err => console.error(err));               
+            fs.writeFileSync('./.tig/header', head, err => console.error(err));               
         }
     })
     .catch((err) => console.err(err))
@@ -64,13 +58,6 @@ function branch(){
 }
 
 
-module.exports = {changeBranch, createNewBranch, branch}
-
-
-
-
-
-
 function listBranch(){
     let tree = JSON.parse(read('./.tig/tree.json'));
     let branchList = []
@@ -81,3 +68,12 @@ function listBranch(){
     }
     return branchList;
 }
+
+
+module.exports = {changeBranch, createNewBranch, branch, listBranch}
+
+
+
+
+
+
