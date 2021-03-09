@@ -24,8 +24,8 @@ async function commit(msg) { //TODO : add time when commit
         let newTree = keys.map(e => e.join('  ')).join('\n');
         let hash = sha1(newTree);
         fs.writeFileSync('./.tig/object/'+hash, newTree, err => console.error(err));
-
-        let next = fs.existsSync('./.tig/header') ? read('./.tig/header') : null;
+        let branch = read('./.tig/head')
+        let next = read('./.tig/refs/heads/' + branch)
         let time = new Date();
         time =
             String(time.getDate()).padStart(2,'0') + '/' +
@@ -36,7 +36,7 @@ async function commit(msg) { //TODO : add time when commit
         let newCommit = hash + '\n' + message + '\n' + time + '\n' + next
         hash = sha1(newCommit);
         fs.writeFileSync('./.tig/object/'+hash, newCommit, err => console.error(err));
-        fs.writeFileSync('./.tig/header', hash, err => console.error(err));
+        fs.writeFileSync('./.tig/refs/heads/' + branch, hash, err => console.error(err));
         fs.rmSync('./.tig/index');
     } catch (err) { console.error(err) };
 }

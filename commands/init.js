@@ -7,10 +7,12 @@ function init(){
     else{
             fs.mkdirSync('./.tig');
             fs.mkdirSync('./.tig/object');
-            fs.writeFileSync('./.tig/head', 'main', err => console.error(err));
+            fs.mkdirSync('./.tig/refs');
+            fs.mkdirSync('./.tig/refs/heads');
+            fs.writeFileSync('./.tig/refs/heads/main', 'null');
+            fs.writeFileSync('./.tig/head', 'main');
             fs.writeFileSync('./.tig/exclude.txt',
-             '# Writte here files or pattern to exclude\n# line starting with # are comments',
-              err => console.error(err));
+             '# Writte here files or pattern to exclude\n# line starting with # are comments');
     }
 }
 

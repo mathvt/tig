@@ -1,20 +1,16 @@
 const fs = require('fs');
-const {read, lastCommitOfBranch} = require('../myFunctions');
-const {revert} = require('./revert')
+const { read } = require('../myFunctions');
+const { revert } = require('./revert')
 
 
 
 function createNewBranch(name){
-    if (!name){
-        return console.log('You must specify new branch name.')
-    }
-    let branchList = listBranch();
+    let branchList = fs.readdirSync('./.tig/refs/heads/');
     if(branchList.includes(name)){
         return console.log('This branch name already exist')
     }
-    console.log('The new branch will be created on the next commit')
-
-    fs.writeFileSync('./.tig/branch.txt', name, err => console.error(err));
+    let commit = read('./.tig/refs/heads/' + read('./.tig/head'))
+    fs.writeFileSync('./.tig/refs/heads/'+ name, commit);
 }
 
 
@@ -23,24 +19,22 @@ function changeBranch(name){
     if (!name){
         return console.log('You must specify an existing branch name.')
     }
-    let current = read('./.tig/branch.txt');
+    let current = read('./.tig/head');
     if (name === current){
         return console.log('Already on the '+current+' branch')
     }
-    let branchList = listBranch();
+    let branchList = fs.readdirSync('./.tig/refs/heads/');
     if(!branchList.includes(name)){
         return console.log('This branch does not exist')
     }
-    if(fs.existsSync('./.tig/stage.json')){
+    if(fs.existsSync('./.tig/index')){
         return console.log('Please commit or unstage before switching branch');
     }
-    let tree = JSON.parse(read('./.tig/tree.json'));
-    let head = lastCommitOfBranch(name, tree)
-    revert(head)
+    let newHead = read('./.tig/refs/heads/'+name)
+    revert(newHead)
     .then((res) => {
         if(res === 'Done'){
-            fs.writeFileSync('./.tig/branch.txt', name, err => console.error(err));
-            fs.writeFileSync('./.tig/header', head, err => console.error(err));               
+            fs.writeFileSync('./.tig/head', name, err => console.error(err));              
         }
     })
     .catch((err) => console.err(err))
@@ -48,29 +42,16 @@ function changeBranch(name){
 
 
 
-function branch(){
-    let current = read('./.tig/branch.txt')
-    let branchList = listBranch();
-    !branchList.includes(current) && branchList.push(current);
+function branchList(){
+    let current = read('./.tig/head')
+    let branchList = fs.readdirSync('./.tig/refs/heads/');
     branchList.forEach(b => {
         b === current ? console.log(' * '+b) : console.log('   '+b);
     })
 }
 
 
-function listBranch(){
-    let tree = JSON.parse(read('./.tig/tree.json'));
-    let branchList = []
-    for (key in tree){
-        if (!branchList.includes(tree[key]['branch'])){
-            branchList.push(tree[key]['branch'])
-        }
-    }
-    return branchList;
-}
-
-
-module.exports = {changeBranch, createNewBranch, branch, listBranch}
+module.exports = {changeBranch, createNewBranch, branchList}
 
 
 

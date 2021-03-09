@@ -125,7 +125,7 @@ function compareSomeFiles(project, old){
         project = readPath(project);
     }
     else{
-        project = [fileOrDir];
+        project = [project];
     }
     let files = readPath('.');
     let oldName = old.map(e => e[1]);
@@ -137,7 +137,7 @@ function compareSomeFiles(project, old){
         remove = oldName.filter(f => !project.includes(f) && !files.includes(f) && re.test(f));
     }
     else{
-        remove = oldName.filter(f => project.includes(f)) && !files.includes(f)
+        remove = oldName.filter(f => project.includes(f) && !files.includes(f))
     }
     let modified = old.filter(
         f => project.includes(f[1]) && !Buffer.from(read(f[1])).equals(Buffer.from(read(f[0])))

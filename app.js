@@ -6,7 +6,7 @@ const { addDot, addSomething, unstage } = require('./commands/add')
 const { commit } = require('./commands/commit')
 const { history } = require('./commands/history')
 const { revert } = require('./commands/revert')
-const { branch, createNewBranch, changeBranch } = require('./commands/branch')
+const { branchList, createNewBranch, changeBranch } = require('./commands/branch')
 const { status } = require('./commands/status');
 const { merge } = require('./commands/merge');
 
@@ -23,14 +23,8 @@ const argv = yargs
     .command('add <option>', 'add . stage all files, or add <file or dir> only stage specified location')
     .command('log [numToShow]', 'show history of commit')
     .command('revert [comToREv] [file]', 'revert but not commit')
-    .command('switch [branchName]', 'change or create new branch',{
-        newBranch: {
-            description: 'create a new branch',
-            alias: 'c',
-            type: 'string',
-        }
-    })
-    .command('branch', 'list existing branch')
+    .command('switch [branchName]', 'change or create new branch')
+    .command('branch [branchName]', 'list existing branch')
     .command('status', 'status')
     .command('merge [name]', 'merge')
     .command('reset [name]', 'remove file from stage')
@@ -79,16 +73,16 @@ const argv = yargs
         .catch((err) => console.err(err))
     }
 
-    else if (argv._.includes('switch') && argv.branchName){
+    else if (argv._.includes('switch')){
         changeBranch(argv.branchName);
     }
 
-    else if (argv._.includes('switch') && argv.newBranch){
-        createNewBranch(argv.newBranch);
+    else if (argv._.includes('branch') && argv.branchName){
+        createNewBranch(argv.branchName);
     }
 
     else if (argv._.includes('branch')){
-        branch();
+        branchList();
     }
 
     else if (argv._.includes('status')){         

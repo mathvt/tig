@@ -10,7 +10,7 @@ function status(){
     if(!fs.existsSync('./.tig')){
         return console.log('project not initialized');
     }
-    let branch = read('./.tig/branch.txt');
+    let branch = read('./.tig/head');
 
     console.log('On branch '+branch+'\n');
     
@@ -40,10 +40,7 @@ function addedStatus(){
 function modifiedStatus(stage){
     let keysStage = stage[0].slice();
     let stageFiles = keysStage.map(e => e[1]) 
-    let tree = []
-    if(fs.existsSync('./.tig/header')){
-        tree = readCommit();
-    }
+    let tree = readCommit();
     tree.forEach(e => !stageFiles.includes(e[1]) && keysStage.push(e));
     keysStage = keysStage.map(f => ['./.tig/object/'+f[0],f[1]]);
     let project = readPath('.');

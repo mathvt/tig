@@ -5,22 +5,6 @@ const copy = require('recursive-copy');
 
 
 
-// Return a list of [hash, file name] from a commit id called leaf
-function readTree(leaf, tree){
-    let keys = leaf.keys;
-    let filesName = keys.map(e => e[1])
-    let ignore = leaf['deletedFiles'];
-    if (leaf.next !== null){
-        readTree(tree[leaf.next] ,tree).forEach(f => {
-            if(!filesName.includes(f[1]) && !ignore.includes(f[1])){
-                keys.push(f)
-            }
-        });
-    }
-    
-    return keys;
-}
-
 
 function read(path){
     return fs.readFileSync(path, 'utf-8',err => console.error(err));
@@ -128,8 +112,8 @@ function lastCommitOfBranch(name, tree){
 
 
 function readCommit(id){
-    id = id || fs.existsSync('./.tig/header') && read('./.tig/header') || false;
-    if (id === false){
+    id = id || read('./.tig/refs/heads/' + read('./.tig/head')) || false;
+    if (id === false || id === 'null'){
         return [];
     }
     if (!isNaN(id)){
@@ -150,15 +134,15 @@ function readIndex(){
 
 
 function nthCommit(n, next){
-    let id = next || read('./.tig/header')
+    let id = next || read('./.tig/refs/heads/' + read('./.tig/head'))
     let commit = read('./.tig/object/'+id).split('\n')
     n--;
-    if(n > 0 && commit[3] !== 'null'){
+    if(n > -1 && commit[3] !== 'null'){
         id = nthCommit(n, commit[3])
     }
     return id
 }
 
 
-module.exports = {hashAndCopy, askMsg, readTree, read, readPath, checkFileName, simpl, readfullpath,
+module.exports = {hashAndCopy, askMsg, read, readPath, checkFileName, simpl, readfullpath,
                   lastCommitOfBranch, readCommit, readIndex}

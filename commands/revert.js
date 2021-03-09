@@ -10,7 +10,7 @@ function revert(com, fileToRevert){
         if(com === undefined || com === 'header'){
             com = 0;
         }
-        else{
+        else if(com.length !== 40){
             com = parseInt(com, 10);
         }
         let tree = readCommit(com);

@@ -19,7 +19,7 @@ module.exports = {history}
 
 
 function commitHistory(commit){
-    let id = commit || read('./.tig/header')
+    let id = commit || read('./.tig/refs/heads/' + read('./.tig/head'))
     commit = read('./.tig/object/'+id).split('\n')
     let hist = [{id, comment: commit[1], time: commit[2]}]
     if(commit[3] !== 'null'){
