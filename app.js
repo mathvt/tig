@@ -2,13 +2,12 @@ const yargs = require('yargs');
 const fs = require('fs')
 
 const { init } = require('./commands/init');
-const { addDot, addSomething } = require('./commands/add')
+const { addDot, addSomething, unstage } = require('./commands/add')
 const { commit } = require('./commands/commit')
 const { history } = require('./commands/history')
 const { revert } = require('./commands/revert')
 const { branch, createNewBranch, changeBranch } = require('./commands/branch')
 const { status } = require('./commands/status');
-const { reset } = require('./commands/reset');
 const { merge } = require('./commands/merge');
 
 
@@ -23,8 +22,7 @@ const argv = yargs
     })
     .command('add <option>', 'add . stage all files, or add <file or dir> only stage specified location')
     .command('log [numToShow]', 'show history of commit')
-    .command('revert [numToREv] [file]', 'revert but not commit')
-    .command('reset [file]', 'remove file from stage')
+    .command('revert [comToREv] [file]', 'revert but not commit')
     .command('switch [branchName]', 'change or create new branch',{
         newBranch: {
             description: 'create a new branch',
@@ -35,6 +33,7 @@ const argv = yargs
     .command('branch', 'list existing branch')
     .command('status', 'status')
     .command('merge [name]', 'merge')
+    .command('reset [name]', 'remove file from stage')
 
     .command('$0', 'the default command', () => {}, (argv) => {
         console.log('wrong command')
@@ -67,17 +66,17 @@ const argv = yargs
         addSomething(argv.option);
     }
 
+    else if(argv._.includes('reset')){
+        unstage(argv.name);
+    }
+
     else if (argv._.includes('log')){
         history(argv.numToShow);
     }
 
     else if (argv._.includes('revert')){
-        revert(argv.numToREv, argv.file)
+        revert(argv.comToREv, argv.file)
         .catch((err) => console.err(err))
-    }
-
-    else if(argv._.includes('reset')){
-        reset(argv.file);
     }
 
     else if (argv._.includes('switch') && argv.branchName){

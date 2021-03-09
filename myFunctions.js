@@ -132,6 +132,10 @@ function readCommit(id){
     if (id === false){
         return [];
     }
+    if (!isNaN(id)){
+        id = nthCommit(id);
+    }
+
     let commit = read('./.tig/object/'+id).split('\n')
     let tree = commit[0]
     return read('./.tig/object/'+tree).split('\n').map(e => e.split('  '));
@@ -142,6 +146,17 @@ function readIndex(){
     let index = read('./.tig/index').split('\n');
     index =  index.map((e,i) => i === 0 ? e.split('  ').map(e => e.split(',')) : e.split(','));
     return index.map(e => e[0] === '' ? [] : e);
+}
+
+
+function nthCommit(n, next){
+    let id = next || read('./.tig/header')
+    let commit = read('./.tig/object/'+id).split('\n')
+    n--;
+    if(n > 0 && commit[3] !== 'null'){
+        id = nthCommit(n, commit[3])
+    }
+    return id
 }
 
 

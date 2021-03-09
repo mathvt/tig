@@ -1,21 +1,20 @@
 const fs = require('fs');
 const copy = require('recursive-copy');
-const { isString } = require('util');
-const { read, askMsg, readTree, checkFileName, readPath } = require('../myFunctions')
+const { read, askMsg, readTree, checkFileName, readPath, readCommit } = require('../myFunctions')
 
 
 
 // revert but not commit
-function revert(num, fileToRevert){
+function revert(com, fileToRevert){
     return new Promise(function(res){
-        let tree = JSON.parse(read('./.tig/tree.json'));
-        if(num === undefined || num === 'header'){
-            num = read('./.tig/header')
-        } 
-        if(testIfValid(num, tree)){
-            return console.log('invalid id')
+        if(com === undefined || com === 'header'){
+            com = 0;
         }
-        if(fs.existsSync('./.tig/stage.json')){
+        else{
+            com = parseInt(com, 10);
+        }
+        let tree = readCommit(com);
+        if(fs.existsSync('./.tig/index')){
             return console.log('Clean stage area before revert(commit or reset)');
         }
         askMsg('you will lose all change that have not been commited. Continue ? y/n')
@@ -25,27 +24,27 @@ function revert(num, fileToRevert){
                 console.log('Aborded')
                 return res('Aborted')
             }
-            let revertKeys = readTree(tree[num], tree);    // hash and files name of the commit id
             if(fileToRevert){
-                revertKeys = revertKeys.filter(e => e[1] === checkFileName(fileToRevert))
+                tree = tree.filter(e => e[1] === checkFileName(fileToRevert))
             }
-            if(revertKeys.length === 0){                // test if given file was commited
-                return console.log('file not found')
+            if(tree.length === 0){                // test if given file was commited
+                console.log('file not found')
+                return res('Aborted')
             }        
-            let newFilesList = revertKeys.map(e => e[1]);
+            let newFilesList = tree.map(e => e[1]);
             files = readPath('.');
             if (!fileToRevert){
                 files = removeFileAndDir(files, newFilesList);  // rm files and dir that does not match
             }
-            revertKeys.forEach(f => {                       //compare files and remove those that have been modified
-                if(files.includes(f[1]) && !Buffer.from(read(f[1])).equals(Buffer.from(read('./.tig/data/'+f[0])))){
+            tree.forEach(f => {                       //compare files and tree and remove modified files
+                if(files.includes(f[1]) && !Buffer.from(read(f[1])).equals(Buffer.from(read('./.tig/object/'+f[0])))){
                     fs.rmSync(f[1])
                 }
             })
             files = readPath('.');
-            revertKeys.forEach(f => {       //copy files (replace those previously deleted if needed)
+            tree.forEach(f => {       //copy files (replace those previously deleted if needed)
                 if(!files.includes(f[1])){
-                    copy('./.tig/data/'+f[0], f[1])
+                    copy('./.tig/object/'+f[0], f[1])
                 }
             })
             console.log('Done')
@@ -73,16 +72,4 @@ function removeFileAndDir(files, newFilesList){
         removeFileAndDir(files, newFilesList)
     }
     return files;
-}
-
-
-
-function testIfValid(num, tree){
-    num = num.toString()
-    for (let key in tree){
-        if (key === num){
-            return false
-        }
-    }
-    return true
 }

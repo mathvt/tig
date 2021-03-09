@@ -1,7 +1,7 @@
 const { read, lastCommitOfBranch, readTree } = require('../myFunctions')
 const { listBranch } = require('./branch')
 
-
+//work in progress
 
 function merge(branch){
     let tree = JSON.parse(read('./.tig/tree.json'));

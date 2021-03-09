@@ -80,7 +80,7 @@ function manageAdded(stage){
         let index = key[0].map(e => e.join()).join('  ')
         stage.forEach(e => index = index + '\n' + e.join())
         index = index + '\n' + key[1].join()
-        fs.writeFileSync('./.tig/index', index, err => console.error(err));    
+        fs.writeFileSync('./.tig/index', index, err => console.error(err));
     })
     .catch ((err) => console.error(err));
 }
@@ -173,13 +173,30 @@ function showChanges(stage){
 }
 
 
-function unstage(){
-    let index = read('./.tig/index').split('\n')
-    let key = index[0].split('  ').map(e => e.split(','));
-    let doNotRm = index[4].split(',');
-    key.forEach(e => !doNotRm.includes(e[0]) && fs.rmSync('./.tig/object/'+e[0]))
-    fs.rmSync('./.tig/index');
+function unstage(file){
+    if(!fs.existsSync('./.tig/index')){
+        return console.log('nothing to reset');
+    }
+    let index = readIndex();
+    let key = index[0]
+    let doNotRm = index[4];
+    if (!file){
+        key.forEach(e => !doNotRm.includes(e[0]) && fs.rmSync('./.tig/object/'+e[0]))
+        fs.rmSync('./.tig/index');
+        return
+    }
+    file = checkFileName(file);
+    if(key.every(e => e[1] !== file)){
+        return console.log('file already not staged')
+    }
+    key.forEach(e => {
+        if(e[1] === file && !doNotRm.includes(e[0])){
+            fs.rmSync('./.tig/object/'+e[0])
+        }  
+    })
+    index = index.map((e,i) => i === 1 ? e.filter(f => f[1] !== file) : e.filter(f => f !== file));
+    fs.writeFileSync('./.tig/index', index, err => console.error(err));
 }
 
 
-module.exports = {addDot, addSomething, compareAllFiles}
+module.exports = {addDot, addSomething, compareAllFiles, unstage}

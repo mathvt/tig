@@ -8,7 +8,7 @@ function history(num){
     }
 
     for (data of histo){
-        let info = data.id.slice(0,8) + '   ' + data.comment
+        let info = data.id.slice(0,8) + '   ' + data.comment + '   ' + data.time
         console.log(info);
         num && num--;
         if (num <= 0){return}
@@ -21,9 +21,9 @@ module.exports = {history}
 function commitHistory(commit){
     let id = commit || read('./.tig/header')
     commit = read('./.tig/object/'+id).split('\n')
-    let hist = [{id, comment: commit[1]}]
-    if(commit[2] !== 'null'){
-        hist = hist.concat(commitHistory(commit[2]))
+    let hist = [{id, comment: commit[1], time: commit[2]}]
+    if(commit[3] !== 'null'){
+        hist = hist.concat(commitHistory(commit[3]))
     }
     return hist
 }

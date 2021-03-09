@@ -3,7 +3,7 @@ const { askMsg, read, simpl, readCommit, readIndex } = require('../myFunctions')
 const crypto = require('crypto')
 
 
-async function commit(msg) {
+async function commit(msg) { //TODO : add time when commit
     if (!fs.existsSync('./.tig/index')) {
         return console.log('nothing to commit');
     }
@@ -11,9 +11,9 @@ async function commit(msg) {
         message = msg || await askMsg('Comment : ');
 
         let stage = readIndex();
-        stage[1].length !== 0 && stage[1].forEach(e => console.log('     modified :   ' + simpl(e)))
-        stage[2].length !== 0 && stage[2].forEach(e => console.log('     added :   ' + simpl(e)))
-        stage[3].length !== 0 && stage[3].forEach(e => console.log('     removed :   ' + simpl(e)))
+        stage[1].forEach(e => console.log('     modified :   ' + simpl(e)))
+        stage[2].forEach(e => console.log('     added :   ' + simpl(e)))
+        stage[3].forEach(e => console.log('     removed :   ' + simpl(e)))
         let keys = stage[0];
         let remove = stage[3]
         
@@ -26,7 +26,14 @@ async function commit(msg) {
         fs.writeFileSync('./.tig/object/'+hash, newTree, err => console.error(err));
 
         let next = fs.existsSync('./.tig/header') ? read('./.tig/header') : null;
-        let newCommit = hash + '\n' + message + '\n' + next
+        let time = new Date();
+        time =
+            String(time.getDate()).padStart(2,'0') + '/' +
+            String(time.getMonth() + 1).padStart(2,'0') + '/' +
+            time.getFullYear() + ' ' +
+            time.getHours() + ':' + time.getMinutes() + ':' + time.getSeconds();
+        
+        let newCommit = hash + '\n' + message + '\n' + time + '\n' + next
         hash = sha1(newCommit);
         fs.writeFileSync('./.tig/object/'+hash, newCommit, err => console.error(err));
         fs.writeFileSync('./.tig/header', hash, err => console.error(err));
