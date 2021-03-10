@@ -95,19 +95,9 @@ function checkFileName(file){
     }
 }
 
+
 function simpl(e){
     return e.replace('./','')
-}
-
-
-function lastCommitOfBranch(name, tree){
-    let branchCommit = []
-    for (let key in tree){
-        if (tree[key]['branch'] === name){
-            branchCommit.unshift(key)
-        }
-    }
-    return branchCommit[0];
 }
 
 
@@ -144,5 +134,4 @@ function nthCommit(n, next){
 }
 
 
-module.exports = {hashAndCopy, askMsg, read, readPath, checkFileName, simpl, readfullpath,
-                  lastCommitOfBranch, readCommit, readIndex}
+module.exports = {hashAndCopy, askMsg, read, readPath, checkFileName, simpl, readfullpath, readCommit, readIndex}
